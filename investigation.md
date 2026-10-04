@@ -1,7 +1,5 @@
 # May 13 Revenue Cliff: Investigation Memo
 
-Prepared for Rishabh · Oct 4, 2026
-
 ## Summary
 
 Failed UPI payments between 09:00 and 17:00 on May 13 caused the drop: paid orders fell 55% and paid revenue 63% against the May 6-12 daily average.
@@ -21,7 +19,7 @@ Paid orders fell 55% and paid revenue 63% against the May 6-12 daily average. Ag
 | Revenue, all orders (dashboard) | 1.88M | 2.46M | -23% | 2.70M | -30% |
 | Revenue, paid orders only | 0.88M | 2.36M | -63% | 2.56M | -66% |
 
-Orders were still created at close to the normal rate, but only 47% were paid, against 93-97% on every other day from May 1 to May 20. SQL: Q1, Q2.
+Orders were still created at close to the normal rate, but only 47% were paid, against 93-97% on every other day from May 1 to May 20.
 
 ## Hypotheses tested
 
@@ -41,7 +39,7 @@ One of seven hypotheses explains the drop; the other six are ruled out by the da
 
 UPI failed on every attempt between 09:00 and 16:55, and the failures were gateway timeouts, not bank declines. 168 of the 171 UPI payments in that window returned GATEWAY_TIMEOUT ("Gateway did not respond within 30s"); the other 3 were network or bank errors. That error code is essentially absent on a normal day.
 
-**Hourly UPI payments on May 13 (SQL Q7)**
+**Hourly UPI payments on May 13**
 
 | Hour | Succeeded | Failed |
 | --- | --- | --- |
@@ -56,19 +54,19 @@ UPI failed on every attempt between 09:00 and 16:55, and the failures were gatew
 | 16:00 | 0 | 30 |
 | 17:00-23:59 (recovered) | 21 | 2 |
 
-- **Every gateway failed.** Razorpay 91 of 91, PayU 29 of 29, Stripe 24 of 24 and the gateway labelled "cash" 27 of 27. Four gateways failing together points to a shared dependency, either the UPI rail or our own integration layer. The data cannot say which (SQL Q4, Q7b).
-- **Other methods were fine.** Only 10 payments failed across all non-UPI methods all day, and just 19 non-UPI orders were created in the window (Q4, Q8b).
-- **Shoppers were funnelled into UPI.** UPI took 88% of order attempts in the window (137 of 156) against about 33% on a normal day. Card attempts fell from about 51 to 11, while total attempts stayed flat. Something made UPI the default or the favoured option that morning (Q8).
-- **Recovery was immediate.** All 25 checkouts in the 17:00 hour completed, so the fault cleared rather than decayed (Q7, Q9b).
+- **Every gateway failed.** Razorpay 91 of 91, PayU 29 of 29, Stripe 24 of 24 and the gateway labelled "cash" 27 of 27. Four gateways failing together points to a shared dependency, either the UPI rail or our own integration layer.
+- **Other methods were fine.** Only 10 payments failed across all non-UPI methods all day, and just 19 non-UPI orders were created in the window.
+- **Shoppers were funnelled into UPI.** UPI took 88% of order attempts in the window (137 of 156) against about 33% on a normal day. Card attempts fell from about 51 to 11, while total attempts stayed flat. Something made UPI the default or the favoured option that morning.
+- **Recovery was immediate.** All 25 checkouts in the 17:00 hour completed, so the fault cleared rather than decayed.
 
 The drop is therefore a payment-completion failure, not a demand problem: shoppers kept arriving and trying to buy, but nearly all of them paid through the one method that was down.
 
 ## Business impact
 
-- **157 orders failed payment on May 13, worth about 1.01M.** Against a normal day, roughly 142 of these are excess failures, worth about 0.91M (SQL Q16).
-- **130 customers had at least one failed order.** 14 paid later the same day, 64 paid within 7 days, and 66 had not paid again by May 21 (Q17).
+- **157 orders failed payment on May 13, worth about 1.01M.** Against a normal day, roughly 142 of these are excess failures, worth about 0.91M.
+- **130 customers had at least one failed order.** 14 paid later the same day, 64 paid within 7 days, and 66 had not paid again by May 21.
 - **The 66 unrecovered customers are the clearest win-back list.** They tried to buy and were blocked by our checkout, not by their own choice.
-- **Failed orders were later cancelled, not paid late.** Late-posting payments do not explain any of the gap (Q14).
+- **Failed orders were later cancelled, not paid late.** Late-posting payments do not explain any of the gap.
 
 ## Open questions and data caveats
 
