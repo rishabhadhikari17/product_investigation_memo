@@ -94,9 +94,6 @@ The drop is therefore a payment-completion failure, not a demand problem: shoppe
 5. **Check the May 13 morning release.** Confirm whether a UPI default or offer change shipped, since it concentrated shoppers into the failing method.
 
 ## Appendix: SQL index
-
-All queries are in may13_revenue_cliff_queries.sql (PostgreSQL, schema ecom).
-
 - Q1-Q2: daily scorecard and sizing against both baselines
 - Q3-Q8b: payment failures by hour, method, gateway and error code, and the UPI window
 - Q9-Q10c: funnel, traffic, attribution touches and campaigns
