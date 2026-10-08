@@ -1,70 +1,74 @@
-# Ecommerce Revenue Investigations (`ecom`)
+# Ecommerce Investigations (`ecom`)
 
-Two investigations on the same ecommerce dataset (PostgreSQL schema `ecom`): the May 13 revenue cliff, and the high-views, low-conversion paradox.
+Three investigations on one ecommerce dataset (PostgreSQL schema `ecom`, orders from 2026-03-16 to 2026-06-14). Each folder has an `INVESTIGATION.md` memo and the SQL queries behind it.
+
+| # | Investigation | Core question | Answer in one line |
+| --- | --- | --- | --- |
+| 1 | [May 13 revenue cliff](01_revenue_cliff/INVESTIGATION.md) | Why did paid orders fall 55% on one day? | A UPI payment outage from 09:00 to 16:55 |
+| 2 | [High-views, low-conversion paradox](02_high_views_low_conversion/INVESTIGATION.md) | Why do some products get 3-5x more view share than purchase share? | A product-page leak at add-to-cart that price, stock, traffic and reviews do not explain |
+| 3 | [Coupon cannibalization](03_coupon_cannibalization/INVESTIGATION.md) | Do coupons bring new demand or subsidise purchases that would happen anyway? | No evidence of lift, and they cost about 2.7% of paid order value |
+
+## Repository layout
+
+```
+01_revenue_cliff/                 INVESTIGATION.md, revenue_cliff_queries.sql (Q1-Q18)
+02_high_views_low_conversion/     INVESTIGATION.md, high_views_low_conversion_queries.sql (P1-P9)
+03_coupon_cannibalization/        INVESTIGATION.md, coupon_cannibalization_queries.sql (C1-C11)
+```
 
 ## 1. The May 13 revenue cliff
 
-**Problem statement.** Daily revenue dropped sharply on May 13, 2026, described as roughly 60%. The measured fall in paid orders is 55%. Diagnose whether gateway failures, stockouts, marketing drops or funnel drop-offs caused it.
+**Problem.** Daily revenue fell sharply on May 13, 2026 (described as about 60%, measured as a 55% fall in paid orders). Was it gateway failures, stockouts, marketing drops or funnel drop-offs?
 
-**Hypotheses tested**
-
-| Hypothesis | Verdict |
-| --- | --- |
-| Payment gateway failure | Confirmed |
-| Funnel drop-off before payment | Ruled out |
-| Traffic or marketing drop | Ruled out |
-| Stockout | Ruled out |
-| Pricing, promotions or coupons | Ruled out |
-| Refunds, returns or cancellations | Ruled out |
-| Late-posting payments (reporting artifact) | Ruled out |
+**Hypotheses.** Gateway failure, funnel drop-off, traffic or marketing drop, stockout, pricing and promotions, refunds and returns, late-posting payments.
 
 **Conclusions**
 
-- A UPI payment outage from 09:00 to 16:55 caused the drop. All 171 UPI payments in that window failed, 168 of them with gateway timeouts, on every gateway.
-- Paid orders fell 55% against the May 6-12 daily average (-58% against the last four Wednesdays). Paid revenue fell 63% (-66% against Wednesdays).
-- The dashboard showed only -23% because it counted failed orders as revenue.
-- UPI took 88% of order attempts during the window against about 33% normally, which suggests a default-method or offer change that morning. This needs checking.
-- 157 orders failed, worth about 1.01M. Of 130 affected customers, 66 had not paid again within 7 days.
-- Recommended: UPI fallback with a shorter timeout, hourly payment-health alerts, paid-only revenue reporting and a win-back for the 66 customers.
+- A UPI outage from 09:00 to 16:55 caused it. All 171 UPI payments in that window failed, on every gateway, and 168 of them were gateway timeouts. The other six hypotheses were ruled out.
+- Paid orders fell 55% and paid revenue 63% against the May 6-12 average. The dashboard showed only -23% because it counted failed orders as revenue.
+- 157 orders failed (about 1.01M). 66 of the 130 affected customers had not paid again within 7 days.
 
-## 2. The high-views, low-conversion paradox
+## 2. High-views, low-conversion paradox
 
-**Problem statement.** Find products whose share of views is 3-5x their share of purchases, and diagnose them using SKU-level conversion, pricing and reviews.
+**Problem.** Find products whose view share is 3-5x their purchase share, and diagnose them using SKU-level conversion, pricing and reviews.
 
-**Hypotheses tested**
-
-| Hypothesis | Verdict |
-| --- | --- |
-| Overpriced against its category | Ruled out |
-| Out of stock | Ruled out |
-| Low-quality traffic (channel or device) | Ruled out |
-| Poor quality (returns, "not as described") | Ruled out |
-| Bad reviews or too few reviews | Ruled out |
-| Product page problem (content, imagery, variants) | Likely, but not testable in this data |
+**Hypotheses.** Overpriced, out of stock, low-quality traffic, poor quality (returns), bad or missing reviews, and a product-page problem.
 
 **Conclusions**
 
-- 154 products (75 in the 3-5x band, 79 above 5x) take about 26% of all views but only about 3% of paid units.
-- The leak is at add-to-cart: 7-12% of views for these products against 34% for the rest.
-- Price, stock, traffic mix, returns and reviews all look normal. Ratings average 4.0-4.2 stars, and most products have only 0-2 reviews.
-- The two worst products are both Makeup, at about 70x. Together they drew 6,978 views and sold 27 units.
-- Next step: audit the product pages of the highest-view products and compare them with high-converting pages in the same category.
+- 154 products take about 26% of views but about 3% of paid units. 75 sit in the 3-5x band and 79 above 5x.
+- They leak at add-to-cart (7-12% of views against 34% for other products). Price, stock, traffic mix, returns and reviews (about 4.1 stars, 0-2 reviews per product) all look normal.
+- By elimination the likeliest cause is the product page, which this data cannot show.
 
-## How the two relate
+## 3. Coupon cannibalization
 
-The paradox did not cause the May 13 cliff. These products held 26.1% of views on May 13, inside their normal 24.8-27.3% range. They are two separate leaks at opposite ends of the funnel.
+**Problem.** Marketing says coupons drive net-new acquisition and volume. Finance says they subsidise organic purchases and erode margin. Which is right?
 
-| | Paradox | May 13 cliff |
-| --- | --- | --- |
-| Funnel stage | View to add-to-cart | Checkout to payment |
-| Duration | Every day | 09:00-17:00 on one day |
-| Cause | Not found in this data | UPI gateway timeouts |
+**Hypotheses.** Coupons lift basket size, volume and retention, pull purchases forward, are limited to first-time buyers, and are targeted at the right customers.
 
-Report view-to-cart and checkout-to-paid as separate metrics so each problem is read for what it is.
+**Conclusions**
 
-## Notes
+- The data supports Finance. Coupon and non-coupon orders have the same basket (6,334 vs 6,335), the same retention and the same purchase pace. About 22% of orders use a coupon in every week and every segment.
+- 78% of WELCOME10, WELCOME15 and FIRSTBUY redemptions are by repeat buyers.
+- Percent and BOGO coupons cost about 17% of the order for a basket lift of 1% or less. Modeled discounts total about 6.4M (2.7% of paid value), and 79% of that goes to existing customers.
+- Without a holdout group, true incrementality cannot be proven. A holdout test is the main recommendation.
+
+## How the three connect
+
+| | Revenue cliff | Paradox | Coupons |
+| --- | --- | --- | --- |
+| Where in the funnel | Checkout to payment | View to add-to-cart | Price at purchase |
+| Time pattern | One day, 8 hours | Every day | Every day |
+| Cause found | Yes: UPI timeouts | No: product page suspected | Partly: untargeted discounts |
+| Type of loss | Lost sales | Lost sales | Given-away margin |
+
+- **Separate problems.** The paradox products held 26.1% of views on May 13, inside their normal range, so they did not cause the cliff. Coupon share on May 13 was 22.7%, in line with other days.
+- **One theme.** In all three, the headline number hides the real mechanism. Revenue counted failed orders, views counted browsers rather than buyers, and coupon orders counted discounted sales as growth.
+- **Shared fixes.** Record the discount on each order, define revenue as paid orders only, add product cost so margin can be measured, and track each funnel step as its own metric.
+
+## Conventions and caveats
 
 - **Paid** means `orders.payment_status = 'paid'`. Timestamps are used as stored, with no time-zone conversion.
-- The paradox analysis covers 2026-04-19 to 2026-06-14, the span of `session_events`. Conversion figures compare products with each other and are not absolute rates.
-- Known data caveats: about 8% of orders use the USD price list, discount columns are all zero, and 32 reviews are attached to failed orders.
-- Queries were validated in DuckDB against the CSV exports and written in PostgreSQL syntax.
+- Queries are written in PostgreSQL syntax and validated in DuckDB against the CSV exports.
+- Known data caveats: about 8% of orders use the USD price list, `orders.discount` is 0 on every row, coupon names do not match their discount types, and 32 reviews are attached to failed orders.
+- Investigations 2 and 3 have no experiment behind them, so their conclusions come from comparing behaviour rather than from measured lift.
