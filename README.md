@@ -4,9 +4,9 @@ Three investigations on one ecommerce dataset (PostgreSQL schema `ecom`, orders 
 
 | # | Investigation | Core question | Answer in one line |
 | --- | --- | --- | --- |
-| 1 | [May 13 revenue cliff](01_revenue_cliff/INVESTIGATION.md) | Why did paid orders fall 55% on one day? | A UPI payment outage from 09:00 to 16:55 |
-| 2 | [High-views, low-conversion paradox](02_high_views_low_conversion/INVESTIGATION.md) | Why do some products get 3-5x more view share than purchase share? | A product-page leak at add-to-cart that price, stock, traffic and reviews do not explain |
-| 3 | [Coupon cannibalization](03_coupon_cannibalization/INVESTIGATION.md) | Do coupons bring new demand or subsidise purchases that would happen anyway? | No evidence of lift, and they cost about 2.7% of paid order value |
+| 1 | 01_revenue_cliff | Why did paid orders fall 55% on one day? | A UPI payment outage from 09:00 to 16:55 |
+| 2 | 02_high_views_low_conversion | Why do some products get 3-5x more view share than purchase share? | A product-page leak at add-to-cart that price, stock, traffic and reviews do not explain |
+| 3 | 03_coupon_cannibalization | Do coupons bring new demand or subsidise purchases that would happen anyway? | No evidence of lift, and they cost about 2.7% of paid order value |
 
 ## Repository layout
 
