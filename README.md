@@ -6,8 +6,8 @@ Three SQL investigations on one ecommerce dataset (PostgreSQL schema `ecom`, 40,
 
 | Investigation | Business anomaly | Root cause | Quantified impact | Recommended action |
 | --- | --- | --- | --- | --- |
-| [01. Revenue cliff](01_revenue_cliff/INVESTIGATION.md) | **-63%** paid revenue on May 13 (paid orders -55%) | 8-hour UPI `GATEWAY_TIMEOUT` across all gateways | 157 failed orders (about 1.01M), 66 customers not recovered in 7 days | UPI fallback routing and hourly payment-health alerts |
-| [02. Paradox products](02_high_views_low_conversion/INVESTIGATION.md) | **26%** of views convert to only **3%** of units | Low view-to-cart (7.4% vs 33.9%), pointing to the product page | 154 products, worst: Velvet Kajal at 71x | Product-page and social-proof audit on the highest-view products |
+| [01. Revenue cliff](01_revenue_cliff/revenue_cliff_investigation.md) | **-63%** paid revenue on May 13 (paid orders -55%) | 8-hour UPI `GATEWAY_TIMEOUT` across all gateways | 157 failed orders (about 1.01M), 66 customers not recovered in 7 days | UPI fallback routing and hourly payment-health alerts |
+| [02. Paradox products](02_high_views_low_conversion/.md) | **26%** of views convert to only **3%** of units | Low view-to-cart (7.4% vs 33.9%), pointing to the product page | 154 products, worst: Velvet Kajal at 71x | Product-page and social-proof audit on the highest-view products |
 | [03. Coupon cannibalization](03_coupon_cannibalization/INVESTIGATION.md) | **No basket lift** despite 22% of orders using a coupon | Untargeted discounts, 78% of intro-code use by repeat buyers | 6.4M modeled discount (79% to existing buyers) | Enforce first-order-only codes and run a randomized holdout |
 
 ## Where each problem sits in the customer journey
